@@ -44,6 +44,26 @@ struct CreateUrgeView: View {
 					
 					TextField(Constants.Text.contextPlaceholder, text: $context, axis: .vertical)
 						.lineLimit(3...6)
+					
+					if let selectedHabit = selection, !selectedHabit.replacementStrategyTasks.isEmpty {
+						VStack(alignment: .leading, spacing: 8) {
+							Text(Constants.Text.replacementStrategy)
+								.font(.subheadline)
+								.fontWeight(.semibold)
+							
+							ForEach(selectedHabit.replacementStrategyTasks, id: \.self) { task in
+								HStack(alignment: .top, spacing: 8) {
+									Text("•")
+										.fontWeight(.bold)
+									Text(task)
+										.fixedSize(horizontal: false, vertical: true)
+								}
+								.font(.subheadline)
+								.foregroundStyle(.secondary)
+							}
+						}
+						.padding(.vertical, 4)
+					}
 				}
 				
 				Section(header: Text(Constants.Text.resolution)) {
@@ -71,7 +91,7 @@ struct CreateUrgeView: View {
 				
 				ToolbarItem(placement: .cancellationAction) {
 					Button(Constants.Text.cancel, role: .cancel) {
-						// Handle dismissal
+						createUrgeSheetIsPresented = false
 					}
 				}
 			}
@@ -99,6 +119,7 @@ struct CreateUrgeView: View {
 			static let urgeDetails = "Urge Details"
 			static let time = "Time"
 			static let contextPlaceholder = "Provide more context. What were you doing? How were you feeling? Who were you with?"
+			static let replacementStrategy = "Replacement Strategy Steps:"
 			static let resolution = "Resolution"
 			static let status = "Status"
 			static let notHandled = "Not Handled"

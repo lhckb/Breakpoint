@@ -13,29 +13,30 @@ struct HabitsListView: View {
 	@Query private var habits: [Habit]
 	
 	@State private var createHabitSheetPresented: Bool = false
+	@State private var editingHabit: Habit?
 	
     var body: some View {
 		NavigationStack {
-			VStack {
+			Group {
 				if habits.isEmpty {
-					Text(Constants.Text.noHabitsToView)
-				}
-				else {
+					ContentUnavailableView(
+						Constants.Text.noHabitsToView,
+						systemImage: Constants.Image.trayFill,
+						description: Text(Constants.Text.addYourFirstHabit)
+					)
+				} else {
 					List {
 						ForEach(habits) { habit in
-							Section {
-								Text("\(Constants.Text.habit): \(habit.name)")
-								Text("\(Constants.Text.description): \(habit.habitDescription)")
-								Text("\(Constants.Text.description): \(habit.commonTriggerDescription)")
-								ForEach(habit.replacementStrategyTasks, id: \.self) { step in
-									Text("\(Constants.Text.strategy): \(step)")
-								}
+							HabitCardView(habit: habit) {
+								editingHabit = habit
 							}
+							.listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+							.listRowSeparator(.hidden)
 						}
 					}
+					.listStyle(.plain)
 				}
 			}
-//			.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
 			.navigationTitle(Constants.Text.habits)
 			.toolbar {
 				ToolbarItem {
@@ -47,24 +48,30 @@ struct HabitsListView: View {
 				}
 			}
 			.sheet(isPresented: $createHabitSheetPresented) {
-				CreateHabitView(sheetIsPresented: $createHabitSheetPresented)
+				CreateEditHabitView(sheetIsPresented: $createHabitSheetPresented)
 					.modelContext(modelContext)
+			}
+			.sheet(item: $editingHabit) { habit in
+				CreateEditHabitView(sheetIsPresented: .constant(true), habitToEdit: habit)
+					.modelContext(modelContext)
+					.onDisappear {
+						editingHabit = nil
+					}
 			}
 		}
     }
+}
+
+private enum Constants {
+	enum Text {
+		static let noHabitsToView = "No habits to view"
+		static let addYourFirstHabit = "Add your first habit to get started"
+		static let habits = "Habits"
+	}
 	
-	private enum Constants {
-		enum Text {
-			static let noHabitsToView = "No habits to view"
-			static let habit = "Habit"
-			static let description = "Description"
-			static let strategy = "Strategy"
-			static let habits = "Habits"
-		}
-		
-		enum Image {
-			static let plus = "plus"
-		}
+	enum Image {
+		static let plus = "plus"
+		static let trayFill = "tray.fill"
 	}
 }
 
