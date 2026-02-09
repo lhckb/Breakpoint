@@ -51,7 +51,7 @@ struct CreateUrgeView: View {
 								.font(.subheadline)
 								.fontWeight(.semibold)
 							
-							ForEach(selectedHabit.replacementStrategyTasks, id: \.self) { task in
+							ForEach(Array(selectedHabit.replacementStrategyTasks.enumerated()), id: \.offset) { index, task in
 								HStack(alignment: .top, spacing: 8) {
 									Text("•")
 										.fontWeight(.bold)
@@ -93,6 +93,11 @@ struct CreateUrgeView: View {
 					Button(Constants.Text.cancel, role: .cancel) {
 						createUrgeSheetIsPresented = false
 					}
+				}
+			}
+			.onAppear {
+				if !habits.isEmpty {
+					selection = habits.first
 				}
 			}
 		}

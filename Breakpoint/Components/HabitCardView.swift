@@ -48,7 +48,7 @@ struct HabitCardView: View {
 						.foregroundStyle(.secondary)
 						.textCase(.uppercase)
 					
-					ForEach(habit.replacementStrategyTasks, id: \.self) { task in
+					ForEach(Array(habit.replacementStrategyTasks.enumerated()), id: \.offset) { index, task in
 						HStack(alignment: .top, spacing: 6) {
 							Text("•")
 								.fontWeight(.bold)

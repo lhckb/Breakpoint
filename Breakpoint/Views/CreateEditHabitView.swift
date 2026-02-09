@@ -20,6 +20,7 @@ struct CreateEditHabitView: View {
 	@State private var habitDescription: String = ""
 	@State private var habitReplacementStrategyList: [String] = []
 	@State private var newItemString: String = ""
+	@State private var isAddingNewStep: Bool = false
 	
 	private var isEditing: Bool {
 		habitToEdit != nil
@@ -51,28 +52,42 @@ struct CreateEditHabitView: View {
 				}
 
 				Section(header: Text(Constants.Text.defineStepsToPrevent)) {
-					ForEach($habitReplacementStrategyList, id: \.self) { step in
-						TextField(Constants.Text.stepPlaceholder, text: step)
+					ForEach($habitReplacementStrategyList.indices, id: \.self) { index in
+						TextField(Constants.Text.stepPlaceholder, text: $habitReplacementStrategyList[index])
 					}
 					.onDelete { indexSet in
 						habitReplacementStrategyList.remove(atOffsets: indexSet)
 					}
 					
-					// Add new step field
-					HStack {
-						TextField(Constants.Text.addNewStep, text: $newItemString)
-							.onSubmit {
-								saveNewStrategyStep()
-							}
-						
-						if !newItemString.isEmpty {
-							Button(action: saveNewStrategyStep) {
-								Image(systemName: Constants.Image.plusCircleFill)
-									.foregroundStyle(.blue)
-							}
-							.animation(.easeInOut(duration: 0.2), value: newItemString.isEmpty)
+					// Show text field when adding new step
+					if isAddingNewStep {
+						HStack {
+							TextField(Constants.Text.stepPlaceholder, text: $newItemString)
+								.onSubmit {
+									saveNewStrategyStep()
+								}
 						}
 					}
+					
+					// Add step button (like Contacts app)
+					Button {
+						withAnimation {
+							if !isAddingNewStep {
+								isAddingNewStep = true
+							} else {
+								saveNewStrategyStep()
+								isAddingNewStep = true
+							}
+						}
+					} label: {
+						HStack {
+							Image(systemName: Constants.Image.plusCircleFill)
+								.foregroundStyle(.green)
+							Text(Constants.Text.addStep)
+								.foregroundStyle(.primary)
+						}
+					}
+//					.disabled(isAddingNewStep)
 				}
 			}
 			.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
@@ -100,8 +115,20 @@ struct CreateEditHabitView: View {
     }
 	
 	private func saveNewStrategyStep() {
+		guard !newItemString.trimmingCharacters(in: .whitespaces).isEmpty else {
+			// If empty, just hide the text field
+			isAddingNewStep = false
+			newItemString = ""
+			return
+		}
+		
 		habitReplacementStrategyList.append(newItemString)
 		newItemString = ""
+		
+		// Reset to show the "Add step" button again
+		withAnimation {
+			isAddingNewStep = false
+		}
 	}
 	
 	private func saveHabit() {
@@ -135,6 +162,7 @@ struct CreateEditHabitView: View {
 			static let defineStepsToPrevent = "Replacement Steps"
 			static let stepPlaceholder = "Step"
 			static let addNewStep = "Add New Step"
+			static let addStep = "add step"
 			static let addHabit = "Add Habit"
 			static let editHabit = "Edit Habit"
 			static let confirm = "Confirm"
