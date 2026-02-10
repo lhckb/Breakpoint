@@ -9,6 +9,7 @@ import SwiftUI
 
 struct UrgeCardView: View {
 	let urge: Urge
+	let onEdit: () -> Void
 	
 	private var formattedTime: String {
 		let formatter = DateFormatter()
@@ -18,22 +19,39 @@ struct UrgeCardView: View {
 	}
 	
 	private var resolutionColor: Color {
-		urge.resolution == .handled ? .green : .red
+		switch urge.resolution {
+			case .handled: return .green
+			case .notHandled: return .red
+			case .pending: return .gray
+		}
 	}
 	
 	private var resolutionText: String {
-		urge.resolution == .handled ? Constants.Text.handled : Constants.Text.notHandled
+		switch urge.resolution {
+			case .handled: return Constants.Text.handled
+			case .notHandled: return Constants.Text.notHandled
+			case .pending: return Constants.Text.pending
+		}
 	}
 	
 	var body: some View {
 		VStack(alignment: .leading, spacing: 12) {
-			// Header: Habit Name + Time
+			// Header: Habit Name + Time + Edit Button
 			HStack {
 				Text(urge.habit.name)
 					.font(.title3)
 					.fontWeight(.semibold)
 				
 				Spacer()
+				
+				Button {
+					onEdit()
+				} label: {
+					Image(systemName: Constants.Image.pencil)
+						.font(.subheadline)
+						.foregroundStyle(.secondary)
+				}
+				.buttonStyle(.plain)
 				
 				Text(formattedTime)
 					.font(.subheadline)
@@ -98,6 +116,11 @@ struct UrgeCardView: View {
 			static let resolution = "Resolution"
 			static let handled = "Handled"
 			static let notHandled = "Not Handled"
+			static let pending = "Pending"
+		}
+		
+		enum Image {
+			static let pencil = "pencil"
 		}
 	}
 }
@@ -112,11 +135,13 @@ struct UrgeCardView: View {
 	let urge = try! Urge(
 		time: Date(),
 		habit: habit,
-		resolution: .handled,
 		context: "Feeling stressed after work meeting",
-		resolutionComment: "Took a walk around the block instead"
+		resolutionComment: "Took a walk around the block instead",
+		resolution: .handled
 	)
 	
-	UrgeCardView(urge: urge)
-		.padding()
+	UrgeCardView(urge: urge) {
+		print("Edit tapped")
+	}
+	.padding()
 }

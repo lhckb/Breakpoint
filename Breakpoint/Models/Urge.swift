@@ -14,6 +14,7 @@ class Urge {
 	enum Resolution: String, Codable {
 		case handled
 		case notHandled
+		case pending
 	}
 	
 	var time: Date
@@ -25,9 +26,9 @@ class Urge {
 	init(
 		time: Date,
 		habit: Habit,
-		resolution: Resolution,
 		context: String,
-		resolutionComment: String = ""
+		resolutionComment: String = "",
+		resolution: Resolution = .pending,
 	) throws {
 		// Validate that context is not empty
 		guard !context.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {

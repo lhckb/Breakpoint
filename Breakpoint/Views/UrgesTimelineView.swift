@@ -9,9 +9,12 @@ import SwiftUI
 import SwiftData
 
 struct UrgesTimelineView: View {
+	@Environment(\.modelContext) private var modelContext
+	
 	@Query(sort: \Urge.time, order: .reverse) private var urges: [Urge]
 	
 	@State private var createUrgeSheetIsPresented: Bool = false
+	@State private var editingUrge: Urge? = nil
 	
 	private var urgesByDay: [(String, [Urge])] {
 		let calendar = Calendar.current
@@ -53,7 +56,9 @@ struct UrgesTimelineView: View {
 						ForEach(urgesByDay, id: \.0) { day, dayUrges in
 							Section {
 								ForEach(dayUrges) { urge in
-									UrgeCardView(urge: urge)
+									UrgeCardView(urge: urge) {
+										editingUrge = urge
+									}
 										.listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
 										.listRowSeparator(.hidden)
 								}
@@ -80,7 +85,15 @@ struct UrgesTimelineView: View {
 				}
 			}
 			.sheet(isPresented: $createUrgeSheetIsPresented) {
-				CreateUrgeView(createUrgeSheetIsPresented: $createUrgeSheetIsPresented)
+				CreateEditUrgeView(createUrgeSheetIsPresented: $createUrgeSheetIsPresented)
+					.modelContext(modelContext)
+			}
+			.sheet(item: $editingUrge) { urge in
+				CreateEditUrgeView(createUrgeSheetIsPresented: .constant(true), urgeToEdit: urge)
+					.modelContext(modelContext)
+					.onDisappear {
+						editingUrge = nil
+					}
 			}
 		}
     }

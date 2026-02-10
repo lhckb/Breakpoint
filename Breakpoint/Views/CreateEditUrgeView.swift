@@ -8,18 +8,29 @@
 import SwiftUI
 import SwiftData
 
-struct CreateUrgeView: View {
+struct CreateEditUrgeView: View {
 	@Environment(\.modelContext) private var modelContext
+	@Environment(\.dismiss) private var dismiss
 	
 	@Query private var habits: [Habit]
+	
+	@Binding var createUrgeSheetIsPresented: Bool
+	
+	let urgeToEdit: Urge?
 	
 	@State private var selection: Habit?
 	@State private var time: Date = Date()
 	@State private var context: String = ""
-	@State private var resolution: Urge.Resolution = .notHandled
+	@State private var resolution: Urge.Resolution = .pending
 	@State private var resolutionComment: String = ""
 	
-	@Binding var createUrgeSheetIsPresented: Bool
+	private var isEditing: Bool {
+		urgeToEdit != nil
+	}
+	
+	private var navigationTitle: String {
+		isEditing ? Constants.Text.editUrge : Constants.Text.addUrge
+	}
 	
 	private var pickerText: String {
 		if habits.isEmpty {
@@ -31,6 +42,20 @@ struct CreateUrgeView: View {
 	
 	private var shouldDisableButton: Bool {
 		selection == nil || context.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+	}
+	
+	init(createUrgeSheetIsPresented: Binding<Bool>, urgeToEdit: Urge? = nil) {
+		self._createUrgeSheetIsPresented = createUrgeSheetIsPresented
+		self.urgeToEdit = urgeToEdit
+		
+		// Pre-fill with existing urge data if editing
+		if let urge = urgeToEdit {
+			_selection = State(initialValue: urge.habit)
+			_time = State(initialValue: urge.time)
+			_context = State(initialValue: urge.context)
+			_resolution = State(initialValue: urge.resolution)
+			_resolutionComment = State(initialValue: urge.resolutionComment)
+		}
 	}
 	
     var body: some View {
@@ -72,6 +97,7 @@ struct CreateUrgeView: View {
 				
 				Section(header: Text(Constants.Text.resolution)) {
 					Picker(Constants.Text.status, selection: $resolution) {
+						Text(Constants.Text.pending).tag(Urge.Resolution.pending)
 						Text(Constants.Text.notHandled).tag(Urge.Resolution.notHandled)
 						Text(Constants.Text.handled).tag(Urge.Resolution.handled)
 					}
@@ -81,7 +107,7 @@ struct CreateUrgeView: View {
 						.lineLimit(3...6)
 				}
 			}
-			.navigationTitle(Constants.Text.addUrge)
+			.navigationTitle(navigationTitle)
 			.toolbar {
 				ToolbarItem(placement: .confirmationAction) {
 					Button {
@@ -95,7 +121,7 @@ struct CreateUrgeView: View {
 				
 				ToolbarItem(placement: .cancellationAction) {
 					Button(Constants.Text.cancel, role: .cancel) {
-						createUrgeSheetIsPresented = false
+						dismiss()
 					}
 				}
 			}
@@ -110,20 +136,31 @@ struct CreateUrgeView: View {
 	private func saveUrge() {
 		guard let selectedHabit = selection else { return }
 		
-		do {
-			let newUrge = try Urge(
-				time: time,
-				habit: selectedHabit,
-				resolution: resolution,
-				context: context,
-				resolutionComment: resolutionComment
-			)
-			
-			modelContext.insert(newUrge)
-		} catch let validationError as Urge.ValidationError {
-			
-		} catch {
-			
+		if let existingUrge = urgeToEdit {
+			// Update existing urge
+			existingUrge.time = time
+			existingUrge.habit = selectedHabit
+			existingUrge.context = context
+			existingUrge.resolution = resolution
+			existingUrge.resolutionComment = resolutionComment
+			dismiss()
+		} else {
+			do {
+				let newUrge = try Urge(
+					time: time,
+					habit: selectedHabit,
+					context: context,
+					resolutionComment: resolutionComment,
+					resolution: resolution
+				)
+				
+				modelContext.insert(newUrge)
+				dismiss()
+			} catch let validationError as Urge.ValidationError {
+				
+			} catch {
+				
+			}
 		}
 	}
 	
@@ -139,8 +176,10 @@ struct CreateUrgeView: View {
 			static let status = "Status"
 			static let notHandled = "Not Handled"
 			static let handled = "Handled"
+			static let pending = "Pending"
 			static let resolutionComment = "Resolution Comment"
 			static let addUrge = "Add Urge"
+			static let editUrge = "Edit Urge"
 			static let save = "Save"
 			static let cancel = "Cancel"
 		}
@@ -152,6 +191,24 @@ struct CreateUrgeView: View {
 }
 
 
-#Preview {
-	CreateUrgeView(createUrgeSheetIsPresented: .constant(true))
+#Preview("Create Mode") {
+	CreateEditUrgeView(createUrgeSheetIsPresented: .constant(true))
+}
+
+#Preview("Edit Mode") {
+	let habit = try! Habit(
+		name: "Smoking",
+		habitDescription: "Smoking cigarettes",
+		replacementStrategyTasks: []
+	)
+	
+	let urge = try! Urge(
+		time: Date(),
+		habit: habit,
+		context: "Feeling stressed after work meeting",
+		resolutionComment: "Took a walk around the block instead",
+		resolution: .handled
+	)
+	
+	return CreateEditUrgeView(createUrgeSheetIsPresented: .constant(true), urgeToEdit: urge)
 }
