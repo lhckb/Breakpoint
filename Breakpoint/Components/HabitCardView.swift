@@ -83,7 +83,7 @@ struct HabitCardView: View {
 }
 
 #Preview {
-	let habit = Habit(
+	let habit = try! Habit(
 		name: "Smoking",
 		habitDescription: "Smoking cigarettes throughout the day",
 		replacementStrategyTasks: ["Take a deep breath", "Go for a walk", "Drink water"]

@@ -29,6 +29,10 @@ struct CreateUrgeView: View {
 		return Constants.Text.selectAHabit
 	}
 	
+	private var shouldDisableButton: Bool {
+		selection == nil || context.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+	}
+	
     var body: some View {
 		NavigationStack {
 			Form {
@@ -86,7 +90,7 @@ struct CreateUrgeView: View {
 					} label: {
 						Label(Constants.Text.save, systemImage: Constants.Image.checkmark)
 					}
-					.disabled(selection == nil)
+					.disabled(shouldDisableButton)
 				}
 				
 				ToolbarItem(placement: .cancellationAction) {
@@ -106,15 +110,21 @@ struct CreateUrgeView: View {
 	private func saveUrge() {
 		guard let selectedHabit = selection else { return }
 		
-		let newUrge = Urge(
-			time: time,
-			habit: selectedHabit,
-			resolution: resolution,
-			context: context,
-			resolutionComment: resolutionComment
-		)
-		
-		modelContext.insert(newUrge)
+		do {
+			let newUrge = try Urge(
+				time: time,
+				habit: selectedHabit,
+				resolution: resolution,
+				context: context,
+				resolutionComment: resolutionComment
+			)
+			
+			modelContext.insert(newUrge)
+		} catch let validationError as Urge.ValidationError {
+			
+		} catch {
+			
+		}
 	}
 	
 	private enum Constants {

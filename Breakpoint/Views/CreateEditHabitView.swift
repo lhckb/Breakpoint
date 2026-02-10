@@ -21,6 +21,8 @@ struct CreateEditHabitView: View {
 	@State private var habitReplacementStrategyList: [String] = []
 	@State private var newItemString: String = ""
 	@State private var isAddingNewStep: Bool = false
+	@State private var showErrorAlert: Bool = false
+	@State private var error: Habit.ValidationError? = nil
 	
 	private var isEditing: Bool {
 		habitToEdit != nil
@@ -28,6 +30,12 @@ struct CreateEditHabitView: View {
 	
 	private var navigationTitle: String {
 		isEditing ? Constants.Text.editHabit : Constants.Text.addHabit
+	}
+	
+	private var anyFieldEmpty: Bool {
+		habitName.isEmpty
+		|| habitDescription.isEmpty
+		|| (habitReplacementStrategyList.isEmpty && newItemString.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
 	}
 	
 	init(sheetIsPresented: Binding<Bool>, habitToEdit: Habit? = nil) {
@@ -87,7 +95,6 @@ struct CreateEditHabitView: View {
 								.foregroundStyle(.primary)
 						}
 					}
-//					.disabled(isAddingNewStep)
 				}
 			}
 			.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
@@ -96,10 +103,10 @@ struct CreateEditHabitView: View {
 				ToolbarItem(placement: .confirmationAction) {
 					Button {
 						saveHabit()
-						dismiss()
 					} label: {
 						Label(Constants.Text.confirm, systemImage: Constants.Image.checkmark)
 					}
+					.disabled(anyFieldEmpty)
 				}
 				
 				ToolbarItem(placement: .cancellationAction) {
@@ -111,6 +118,14 @@ struct CreateEditHabitView: View {
 		}
 		.onChange(of: habitReplacementStrategyList) {
 			habitReplacementStrategyList.removeAll(where: { $0.isEmpty })
+		}
+		// if all goes as planned this alert will never show
+		.alert(isPresented: $showErrorAlert, error: error) {
+			Button {
+				
+			} label: {
+				Text("OK")
+			}
 		}
     }
 	
@@ -143,14 +158,22 @@ struct CreateEditHabitView: View {
 			existingHabit.habitDescription = habitDescription
 			existingHabit.replacementStrategyTasks = habitReplacementStrategyList
 		} else {
-			// Create new habit
-			let newHabit = Habit(
-				name: habitName,
-				habitDescription: habitDescription,
-				replacementStrategyTasks: habitReplacementStrategyList
-			)
-			
-			modelContext.insert(newHabit)
+			do {
+				let newHabit = try Habit(
+					name: habitName,
+					habitDescription: habitDescription,
+					replacementStrategyTasks: habitReplacementStrategyList
+				)
+				
+				modelContext.insert(newHabit)
+				dismiss()
+			} catch let validationError as Habit.ValidationError {
+				error = validationError
+				showErrorAlert = true
+			} catch {
+				// This shouldn't happen, but handle unexpected errors
+				fatalError("Unexpected error: \(error)")
+			}
 		}
 	}
 	
@@ -181,7 +204,7 @@ struct CreateEditHabitView: View {
 }
 
 #Preview("Edit Mode") {
-	let habit = Habit(
+	let habit = try! Habit(
 		name: "Smoking",
 		habitDescription: "Smoking cigarettes throughout the day",
 		replacementStrategyTasks: ["Take a deep breath", "Go for a walk", "Drink water"]
