@@ -27,6 +27,7 @@
 		6F26881C2ED7A7AA00300954 /* Breakpoint.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Breakpoint.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6F26882B2ED7A7AB00300954 /* BreakpointTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BreakpointTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		6F2688352ED7A7AB00300954 /* BreakpointUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BreakpointUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		6F3480A32F3CAED800DB2E25 /* Breakpoint.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = Breakpoint.xctestplan; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -75,6 +76,7 @@
 		6F2688132ED7A7AA00300954 = {
 			isa = PBXGroup;
 			children = (
+				6F3480A32F3CAED800DB2E25 /* Breakpoint.xctestplan */,
 				6F26881E2ED7A7AA00300954 /* Breakpoint */,
 				6F26882E2ED7A7AB00300954 /* BreakpointTests */,
 				6F2688382ED7A7AB00300954 /* BreakpointUITests */,

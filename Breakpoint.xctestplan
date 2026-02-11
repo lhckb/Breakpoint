@@ -1,0 +1,39 @@
+{
+  "configurations" : [
+    {
+      "id" : "7A7648E7-0B84-4464-A685-D378F18C9487",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "performanceAntipatternCheckerEnabled" : true,
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:Breakpoint.xcodeproj",
+      "identifier" : "6F26881B2ED7A7AA00300954",
+      "name" : "Breakpoint"
+    }
+  },
+  "testTargets" : [
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:Breakpoint.xcodeproj",
+        "identifier" : "6F26882A2ED7A7AB00300954",
+        "name" : "BreakpointTests"
+      }
+    },
+    {
+      "enabled" : false,
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:Breakpoint.xcodeproj",
+        "identifier" : "6F2688342ED7A7AB00300954",
+        "name" : "BreakpointUITests"
+      }
+    }
+  ],
+  "version" : 1
+}
