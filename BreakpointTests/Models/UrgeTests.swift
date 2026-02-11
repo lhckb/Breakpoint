@@ -34,9 +34,9 @@ struct UrgeValidationTests {
 		let urge = try Urge(
 			time: time,
 			habit: habit,
-			resolution: .handled,
 			context: "At a party with friends",
-			resolutionComment: "Used deep breathing technique"
+			resolutionComment: "Used deep breathing technique",
+			resolution: .handled
 		)
 		
 		#expect(urge.time == time)
@@ -53,8 +53,8 @@ struct UrgeValidationTests {
 		let urge = try Urge(
 			time: Date(),
 			habit: habit,
-			resolution: .notHandled,
-			context: "During work stress"
+			context: "During work stress",
+			resolution: .notHandled
 		)
 		
 		#expect(urge.context == "During work stress")
@@ -68,9 +68,9 @@ struct UrgeValidationTests {
 		let urge = try Urge(
 			time: Date(),
 			habit: habit,
-			resolution: .handled,
 			context: "Morning coffee break",
-			resolutionComment: ""
+			resolutionComment: "",
+			resolution: .handled
 		)
 		
 		#expect(urge.resolutionComment == "")
@@ -83,9 +83,9 @@ struct UrgeValidationTests {
 		let urge = try Urge(
 			time: Date(),
 			habit: habit,
-			resolution: .handled,
 			context: "After lunch",
-			resolutionComment: "Successfully resisted"
+			resolutionComment: "Successfully resisted",
+			resolution: .handled
 		)
 		
 		#expect(urge.resolution == .handled)
@@ -98,9 +98,9 @@ struct UrgeValidationTests {
 		let urge = try Urge(
 			time: Date(),
 			habit: habit,
-			resolution: .notHandled,
 			context: "Late at night",
-			resolutionComment: "Gave in to the urge"
+			resolutionComment: "Gave in to the urge",
+			resolution: .notHandled
 		)
 		
 		#expect(urge.resolution == .notHandled)
@@ -114,8 +114,8 @@ struct UrgeValidationTests {
 		let urge = try Urge(
 			time: pastDate,
 			habit: habit,
-			resolution: .handled,
-			context: "Earlier today"
+			context: "Earlier today",
+			resolution: .handled
 		)
 		
 		#expect(urge.time == pastDate)
@@ -129,8 +129,8 @@ struct UrgeValidationTests {
 		let urge = try Urge(
 			time: futureDate,
 			habit: habit,
-			resolution: .handled,
-			context: "Scheduled reminder"
+			context: "Scheduled reminder",
+			resolution: .handled
 		)
 		
 		#expect(urge.time == futureDate)
@@ -143,8 +143,8 @@ struct UrgeValidationTests {
 		let urge = try Urge(
 			time: Date(),
 			habit: habit,
-			resolution: .handled,
-			context: "  Valid context with padding  "
+			context: "  Valid context with padding  ",
+			resolution: .handled
 		)
 		
 		// Should still create successfully as trimmed value is non-empty
@@ -161,9 +161,9 @@ struct UrgeValidationTests {
 			try Urge(
 				time: Date(),
 				habit: habit,
-				resolution: .handled,
 				context: "",
-				resolutionComment: "Valid comment"
+				resolutionComment: "Valid comment",
+				resolution: .handled
 			)
 		}
 	}
@@ -176,9 +176,9 @@ struct UrgeValidationTests {
 			try Urge(
 				time: Date(),
 				habit: habit,
-				resolution: .handled,
 				context: "     ",
-				resolutionComment: "Valid comment"
+				resolutionComment: "Valid comment",
+				resolution: .handled
 			)
 		}
 	}
@@ -191,8 +191,8 @@ struct UrgeValidationTests {
 			try Urge(
 				time: Date(),
 				habit: habit,
-				resolution: .handled,
-				context: "\t\t\t"
+				context: "\t\t\t",
+				resolution: .handled
 			)
 		}
 	}
@@ -205,8 +205,8 @@ struct UrgeValidationTests {
 			try Urge(
 				time: Date(),
 				habit: habit,
-				resolution: .notHandled,
-				context: "\n\n\n"
+				context: "\n\n\n",
+				resolution: .notHandled
 			)
 		}
 	}
@@ -219,8 +219,8 @@ struct UrgeValidationTests {
 			try Urge(
 				time: Date(),
 				habit: habit,
-				resolution: .handled,
-				context: "  \t\n  "
+				context: "  \t\n  ",
+				resolution: .handled
 			)
 		}
 	}
@@ -256,6 +256,20 @@ struct UrgeValidationTests {
 		#expect(invalid == nil)
 	}
 	
+	@Test("Urge has default resolution of pending")
+	func defaultResolutionValue() async throws {
+		let habit = try createTestHabit()
+		
+		// Create urge without specifying resolution parameter
+		let urge = try Urge(
+			time: Date(),
+			habit: habit,
+			context: "Testing default resolution"
+		)
+		
+		#expect(urge.resolution == .pending)
+	}
+	
 	// MARK: - Edge Case Tests
 	
 	@Test("Urge with very long context is valid")
@@ -266,8 +280,8 @@ struct UrgeValidationTests {
 		let urge = try Urge(
 			time: Date(),
 			habit: habit,
-			resolution: .handled,
-			context: longContext
+			context: longContext,
+			resolution: .handled
 		)
 		
 		#expect(urge.context.count == 10000)
@@ -281,9 +295,9 @@ struct UrgeValidationTests {
 		let urge = try Urge(
 			time: Date(),
 			habit: habit,
-			resolution: .handled,
 			context: "Valid context",
-			resolutionComment: longComment
+			resolutionComment: longComment,
+			resolution: .handled
 		)
 		
 		#expect(urge.resolutionComment.count == 10000)
@@ -296,9 +310,9 @@ struct UrgeValidationTests {
 		let urge = try Urge(
 			time: Date(),
 			habit: habit,
-			resolution: .handled,
 			context: "At 🍺 bar with friends! @#$%^&*()",
-			resolutionComment: "Resisted 💪 successfully!"
+			resolutionComment: "Resisted 💪 successfully!",
+			resolution: .handled
 		)
 		
 		#expect(urge.context.contains("🍺"))
@@ -312,9 +326,9 @@ struct UrgeValidationTests {
 		let urge = try Urge(
 			time: Date(),
 			habit: habit,
-			resolution: .handled,
 			context: "Dans un café français",
-			resolutionComment: "成功抵抗誘惑"
+			resolutionComment: "成功抵抗誘惑",
+			resolution: .handled
 		)
 		
 		#expect(urge.context == "Dans un café français")
@@ -328,8 +342,8 @@ struct UrgeValidationTests {
 		let urge = try Urge(
 			time: Date(),
 			habit: habit,
-			resolution: .handled,
-			context: "Line 1\nLine 2\nLine 3"
+			context: "Line 1\nLine 2\nLine 3",
+			resolution: .handled
 		)
 		
 		#expect(urge.context.contains("\n"))
@@ -342,15 +356,15 @@ struct UrgeValidationTests {
 		let urge1 = try Urge(
 			time: Date(),
 			habit: habit,
-			resolution: .handled,
-			context: "First urge"
+			context: "First urge",
+			resolution: .handled
 		)
 		
 		let urge2 = try Urge(
 			time: Date(),
 			habit: habit,
-			resolution: .notHandled,
-			context: "Second urge"
+			context: "Second urge",
+			resolution: .notHandled
 		)
 		
 		#expect(urge1.habit === urge2.habit)
@@ -364,8 +378,8 @@ struct UrgeValidationTests {
 		let urge = try Urge(
 			time: Date(),
 			habit: habit,
-			resolution: .handled,
-			context: "X" // Minimal non-empty context
+			context: "X", // Minimal non-empty context
+			resolution: .handled
 		)
 		
 		#expect(urge.context == "X")
