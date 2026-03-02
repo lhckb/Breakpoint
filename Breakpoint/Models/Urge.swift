@@ -11,12 +11,7 @@ import SwiftData
 @Model
 class Urge {
 	
-	enum Resolution: String, Codable {
-		case handled
-		case notHandled
-		case pending
-	}
-	
+	@Attribute(.unique) var id: UUID
 	var time: Date
 	var habit: Habit
 	var resolution: Resolution
@@ -35,11 +30,21 @@ class Urge {
 			throw ValidationError.emptyContext
 		}
 		
+		self.id = UUID()
 		self.time = time
 		self.habit = habit
 		self.resolution = resolution
 		self.context = context
 		self.resolutionComment = resolutionComment
+	}
+}
+
+// MARK: - Resolutions
+extension Urge {
+	enum Resolution: String, Codable {
+		case handled
+		case notHandled
+		case pending
 	}
 }
 

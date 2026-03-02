@@ -61,7 +61,7 @@ struct CreateEditHabitView: View {
 
 				Section(header: Text(Constants.Text.defineStepsToPrevent)) {
 					ForEach($habitReplacementStrategyList.indices, id: \.self) { index in
-						TextField(Constants.Text.stepPlaceholder, text: $habitReplacementStrategyList[index])
+						Text(habitReplacementStrategyList[index])
 					}
 					.onDelete { indexSet in
 						habitReplacementStrategyList.remove(atOffsets: indexSet)

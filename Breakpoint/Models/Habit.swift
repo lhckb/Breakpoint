@@ -10,6 +10,7 @@ import SwiftData
 
 @Model
 class Habit {
+	@Attribute(.unique) var id: UUID
 	var name: String
 	var habitDescription: String
 	var replacementStrategyTasks: [String]
@@ -42,6 +43,7 @@ class Habit {
 			throw ValidationError.emptyReplacementStrategy
 		}
 		
+		self.id = UUID()
 		self.name = name
 		self.habitDescription = habitDescription
 		self.replacementStrategyTasks = replacementStrategyTasks
