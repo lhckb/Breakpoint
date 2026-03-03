@@ -13,40 +13,38 @@ class Habit {
 	@Attribute(.unique) var id: UUID
 	var name: String
 	var habitDescription: String
-	var replacementStrategyTasks: [String]
+	
+	@Relationship(deleteRule: .cascade, inverse: \ReplacementStep.habit)
+	var replacementSteps: [ReplacementStep] = []
 	
 	init(
 		name: String,
 		habitDescription: String,
-		replacementStrategyTasks: [String]
+		replacementSteps: [ReplacementStep] = []
 	) throws {
 		// Validate name
 		guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
 			throw ValidationError.emptyName
 		}
-		
+
 		// Validate description
 		guard !habitDescription.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
 			throw ValidationError.emptyDescription
 		}
-		
+
 		// Validate replacement strategies
-		guard !replacementStrategyTasks.isEmpty else {
+		guard !replacementSteps.isEmpty else {
 			throw ValidationError.noReplacementStrategies
 		}
-		
-		// Ensure all replacement strategies are non-empty
-		let validStrategies = replacementStrategyTasks.filter {
-			!$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty 
-		}
-		guard validStrategies.count == replacementStrategyTasks.count else {
-			throw ValidationError.emptyReplacementStrategy
-		}
-		
+
 		self.id = UUID()
 		self.name = name
 		self.habitDescription = habitDescription
-		self.replacementStrategyTasks = replacementStrategyTasks
+		self.replacementSteps = replacementSteps
+
+		for step in replacementSteps {
+			step.habit = self
+		}
 	}
 }
 
@@ -56,7 +54,6 @@ extension Habit {
 		case emptyName
 		case emptyDescription
 		case noReplacementStrategies
-		case emptyReplacementStrategy
 		
 		var errorDescription: String? {
 			switch self {
@@ -66,8 +63,6 @@ extension Habit {
 				return "Habit description cannot be empty."
 			case .noReplacementStrategies:
 				return "At least one replacement strategy is required."
-			case .emptyReplacementStrategy:
-				return "Replacement strategies cannot be empty."
 			}
 		}
 	}

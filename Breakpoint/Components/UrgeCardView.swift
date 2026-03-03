@@ -128,8 +128,7 @@ struct UrgeCardView: View {
 #Preview {
 	let habit = try! Habit(
 		name: "Smoking",
-		habitDescription: "Smoking cigarettes",
-		replacementStrategyTasks: []
+		habitDescription: "Smoking cigarettes"
 	)
 	
 	let urge = try! Urge(

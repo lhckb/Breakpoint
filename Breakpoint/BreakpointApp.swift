@@ -13,7 +13,8 @@ struct BreakpointApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             Habit.self,
-			Urge.self
+            Urge.self,
+            ReplacementStep.self
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 

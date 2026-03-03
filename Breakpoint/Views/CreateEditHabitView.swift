@@ -11,11 +11,11 @@ import SwiftData
 struct CreateEditHabitView: View {
 	@Environment(\.modelContext) private var modelContext
 	@Environment(\.dismiss) private var dismiss
-	
+
 	@Binding var sheetIsPresented: Bool
-	
+
 	let habitToEdit: Habit?
-	
+
 	@State private var habitName: String = ""
 	@State private var habitDescription: String = ""
 	@State private var habitReplacementStrategyList: [String] = []
@@ -23,39 +23,39 @@ struct CreateEditHabitView: View {
 	@State private var isAddingNewStep: Bool = false
 	@State private var showErrorAlert: Bool = false
 	@State private var error: Habit.ValidationError? = nil
-	
+
 	private var isEditing: Bool {
 		habitToEdit != nil
 	}
-	
+
 	private var navigationTitle: String {
 		isEditing ? Constants.Text.editHabit : Constants.Text.addHabit
 	}
-	
+
 	private var anyFieldEmpty: Bool {
 		habitName.isEmpty
 		|| habitDescription.isEmpty
 		|| (habitReplacementStrategyList.isEmpty && newItemString.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
 	}
-	
+
 	init(sheetIsPresented: Binding<Bool>, habitToEdit: Habit? = nil) {
 		self._sheetIsPresented = sheetIsPresented
 		self.habitToEdit = habitToEdit
-		
+
 		// Pre-fill with existing habit data if editing
 		if let habit = habitToEdit {
 			_habitName = State(initialValue: habit.name)
 			_habitDescription = State(initialValue: habit.habitDescription)
-			_habitReplacementStrategyList = State(initialValue: habit.replacementStrategyTasks)
+			_habitReplacementStrategyList = State(initialValue: habit.replacementSteps.sorted(by: { $0.order < $1.order }).map(\.task))
 		}
 	}
-	
+
     var body: some View {
 		NavigationStack {
 			Form {
 				Section(header: Text(Constants.Text.describeHabit)) {
 					TextField(Constants.Text.name, text: $habitName)
-					
+
 					TextField(Constants.Text.description, text: $habitDescription)
 				}
 
@@ -66,7 +66,7 @@ struct CreateEditHabitView: View {
 					.onDelete { indexSet in
 						habitReplacementStrategyList.remove(atOffsets: indexSet)
 					}
-					
+
 					// Show text field when adding new step
 					if isAddingNewStep {
 						HStack {
@@ -76,7 +76,7 @@ struct CreateEditHabitView: View {
 								}
 						}
 					}
-					
+
 					// Add step button (like Contacts app)
 					Button {
 						withAnimation {
@@ -108,7 +108,7 @@ struct CreateEditHabitView: View {
 					}
 					.disabled(anyFieldEmpty)
 				}
-				
+
 				ToolbarItem(placement: .cancellationAction) {
 					Button(Constants.Text.cancel, role: .cancel) {
 						dismiss()
@@ -122,13 +122,13 @@ struct CreateEditHabitView: View {
 		// if all goes as planned this alert will never show
 		.alert(isPresented: $showErrorAlert, error: error) {
 			Button {
-				
+
 			} label: {
 				Text("OK")
 			}
 		}
     }
-	
+
 	private func saveNewStrategyStep() {
 		guard !newItemString.trimmingCharacters(in: .whitespaces).isEmpty else {
 			// If empty, just hide the text field
@@ -136,35 +136,42 @@ struct CreateEditHabitView: View {
 			newItemString = ""
 			return
 		}
-		
+
 		habitReplacementStrategyList.append(newItemString)
 		newItemString = ""
-		
+
 		// Reset to show the "Add step" button again
 		withAnimation {
 			isAddingNewStep = false
 		}
 	}
-	
+
 	private func saveHabit() {
 		// Save any text currently being typed in the step field
 		if !newItemString.trimmingCharacters(in: .whitespaces).isEmpty {
 			saveNewStrategyStep()
 		}
-		
+
 		if let existingHabit = habitToEdit {
-			// Update existing habit
+			// Update existing habit: replace all steps with freshly ordered ones
+			let oldSteps = existingHabit.replacementSteps
+			for step in oldSteps {
+				modelContext.delete(step)
+			}
+			let newSteps = (try? ReplacementStep.createStepsFromStrings(habitReplacementStrategyList)) ?? []
 			existingHabit.name = habitName
 			existingHabit.habitDescription = habitDescription
-			existingHabit.replacementStrategyTasks = habitReplacementStrategyList
+			existingHabit.replacementSteps = newSteps
+			dismiss()
 		} else {
 			do {
+				let steps = try ReplacementStep.createStepsFromStrings(habitReplacementStrategyList)
 				let newHabit = try Habit(
 					name: habitName,
 					habitDescription: habitDescription,
-					replacementStrategyTasks: habitReplacementStrategyList
+					replacementSteps: steps
 				)
-				
+
 				modelContext.insert(newHabit)
 				dismiss()
 			} catch let validationError as Habit.ValidationError {
@@ -176,7 +183,7 @@ struct CreateEditHabitView: View {
 			}
 		}
 	}
-	
+
 	private enum Constants {
 		enum Text {
 			static let describeHabit = "Describe Habit"
@@ -191,7 +198,7 @@ struct CreateEditHabitView: View {
 			static let confirm = "Confirm"
 			static let cancel = "Cancel"
 		}
-		
+
 		enum Image {
 			static let checkmark = "checkmark"
 			static let plusCircleFill = "plus.circle.fill"
@@ -204,11 +211,12 @@ struct CreateEditHabitView: View {
 }
 
 #Preview("Edit Mode") {
+	let steps = try! ReplacementStep.createStepsFromStrings(["Take a deep breath", "Go for a walk", "Drink water"])
 	let habit = try! Habit(
 		name: "Smoking",
 		habitDescription: "Smoking cigarettes throughout the day",
-		replacementStrategyTasks: ["Take a deep breath", "Go for a walk", "Drink water"]
+		replacementSteps: steps
 	)
-	
+
 	CreateEditHabitView(sheetIsPresented: .constant(true), habitToEdit: habit)
 }

@@ -10,7 +10,7 @@ import SwiftUI
 struct HabitCardView: View {
 	let habit: Habit
 	let onEdit: () -> Void
-	
+
 	var body: some View {
 		VStack(alignment: .leading, spacing: 12) {
 			// Header: Habit Name + Edit Button
@@ -18,9 +18,9 @@ struct HabitCardView: View {
 				Text(habit.name)
 					.font(.title3)
 					.fontWeight(.semibold)
-				
+
 				Spacer()
-				
+
 				Button {
 					onEdit()
 				} label: {
@@ -30,7 +30,7 @@ struct HabitCardView: View {
 				}
 				.buttonStyle(.plain)
 			}
-			
+
 			// Description
 			if !habit.habitDescription.isEmpty {
 				Text(habit.habitDescription)
@@ -38,22 +38,22 @@ struct HabitCardView: View {
 					.foregroundStyle(.secondary)
 					.fixedSize(horizontal: false, vertical: true)
 			}
-			
-			// Replacement Strategy Tasks
-			if !habit.replacementStrategyTasks.isEmpty {
+
+			// Replacement Strategy Steps
+			if !habit.replacementSteps.isEmpty {
 				VStack(alignment: .leading, spacing: 8) {
 					Text(Constants.Text.replacementStrategy)
 						.font(.caption)
 						.fontWeight(.semibold)
 						.foregroundStyle(.secondary)
 						.textCase(.uppercase)
-					
-					ForEach(Array(habit.replacementStrategyTasks.enumerated()), id: \.offset) { index, task in
+
+					ForEach(habit.replacementSteps.sorted(by: { $0.order < $1.order })) { step in
 						HStack(alignment: .top, spacing: 6) {
 							Text("•")
 								.fontWeight(.bold)
 								.foregroundStyle(.secondary)
-							Text(task)
+							Text(step.task)
 								.font(.subheadline)
 								.fixedSize(horizontal: false, vertical: true)
 						}
@@ -70,12 +70,12 @@ struct HabitCardView: View {
 				.shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
 		}
 	}
-	
+
 	private enum Constants {
 		enum Text {
 			static let replacementStrategy = "Replacement Strategy:"
 		}
-		
+
 		enum Image {
 			static let pencil = "pencil"
 		}
@@ -83,12 +83,13 @@ struct HabitCardView: View {
 }
 
 #Preview {
+	let steps = try! ReplacementStep.createStepsFromStrings(["Take a deep breath", "Go for a walk", "Drink water"])
 	let habit = try! Habit(
 		name: "Smoking",
 		habitDescription: "Smoking cigarettes throughout the day",
-		replacementStrategyTasks: ["Take a deep breath", "Go for a walk", "Drink water"]
+		replacementSteps: steps
 	)
-	
+
 	HabitCardView(habit: habit) {
 		print("Edit tapped")
 	}
