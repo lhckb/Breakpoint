@@ -17,6 +17,11 @@ class Habit {
 	@Relationship(deleteRule: .cascade, inverse: \ReplacementStep.habit)
 	var replacementSteps: [ReplacementStep] = []
 	
+	// SwiftData auto manages this array every time I reference a Habit in an Urge
+	// I'm mindblown rn
+	@Relationship(deleteRule: .cascade, inverse: \Urge.habit)
+	var urges: [Urge] = []
+	
 	init(
 		name: String,
 		habitDescription: String,

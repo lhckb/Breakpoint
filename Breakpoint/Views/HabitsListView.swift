@@ -48,11 +48,11 @@ struct HabitsListView: View {
 				}
 			}
 			.sheet(isPresented: $createHabitSheetPresented) {
-				CreateEditHabitView(sheetIsPresented: $createHabitSheetPresented)
+				CreateEditHabitView()
 					.modelContext(modelContext)
 			}
 			.sheet(item: $editingHabit) { habit in
-				CreateEditHabitView(sheetIsPresented: .constant(true), habitToEdit: habit)
+				CreateEditHabitView(habitToEdit: habit)
 					.modelContext(modelContext)
 					.onDisappear {
 						editingHabit = nil

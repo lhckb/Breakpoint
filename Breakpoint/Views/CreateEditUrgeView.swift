@@ -24,6 +24,7 @@ struct CreateEditUrgeView: View {
 	@State private var resolution: Urge.Resolution = .pending
 	@State private var resolutionComment: String = ""
 	@State private var completedStepIDs: Set<UUID> = []
+	@State private var showDeleteConfirmAlert: Bool = false
 
 	private var isEditing: Bool {
 		urgeToEdit != nil
@@ -57,9 +58,6 @@ struct CreateEditUrgeView: View {
 			_resolution = State(initialValue: urge.resolution)
 			_resolutionComment = State(initialValue: urge.resolutionComment)
 			_completedStepIDs = State(initialValue: Set(urge.completedReplacementStepIDs))
-			print("DEBUG -----------")
-			print(urge.habit.name)
-			print(urge.completedReplacementStepIDs)
 		}
 	}
 
@@ -73,6 +71,7 @@ struct CreateEditUrgeView: View {
 								.tag(habit as Habit?) // The .tag() modifier tells SwiftUI: "When the user selects this visual option, set the binding to this specific value." Tag value is what goes in selection
 						}
 					}
+					.disabled(isEditing)
 					.onChange(of: selection) { oldValue, newValue in
 						// Reset completed steps when switching to a different habit
 						if oldValue?.id != newValue?.id {
@@ -97,8 +96,8 @@ struct CreateEditUrgeView: View {
 								} label: {
 									HStack(alignment: .top, spacing: 12) {
 										Image(systemName: completedStepIDs.contains(step.id)
-											? "checkmark.circle.fill"
-											: "circle")
+											  ? Constants.Image.checkmarkFilled
+											  : Constants.Image.circle)
 											.foregroundStyle(completedStepIDs.contains(step.id) ? .green : .secondary)
 											.imageScale(.medium)
 											.animation(.spring(duration: 0.3), value: completedStepIDs.contains(step.id))
@@ -129,6 +128,19 @@ struct CreateEditUrgeView: View {
 					TextField(Constants.Text.resolutionComment, text: $resolutionComment, axis: .vertical)
 						.lineLimit(3...6)
 				}
+
+				if urgeToEdit != nil {
+					Section {
+						Button(role: .destructive) {
+							showDeleteConfirmAlert = true
+						} label: {
+							HStack {
+								Image(systemName: Constants.Image.trash)
+								Text(Constants.Text.deleteUrge)
+							}
+						}
+					}
+				}
 			}
 			.navigationTitle(navigationTitle)
 			.toolbar {
@@ -152,6 +164,14 @@ struct CreateEditUrgeView: View {
 				if urgeToEdit == nil && !habits.isEmpty {
 					selection = habits.first
 				}
+			}
+			.alert(isPresented: $showDeleteConfirmAlert) {
+				Alert(
+					title: Text(Constants.Text.deleteUrge),
+					message: Text(Constants.Text.deleteConfirmPrompt),
+					primaryButton: .destructive(Text(Constants.Text.delete)) {
+						deleteUrge(urge: urgeToEdit)
+					}, secondaryButton: .cancel())
 			}
 		}
     }
@@ -199,6 +219,12 @@ struct CreateEditUrgeView: View {
 		}
 	}
 
+	private func deleteUrge(urge: Urge?) {
+		modelContext.delete(urge!)
+		dismiss()
+		try! modelContext.save()
+	}
+
 	private enum Constants {
 		enum Text {
 			static let noHabitsToChooseFrom = "No Habits to Choose From"
@@ -217,10 +243,16 @@ struct CreateEditUrgeView: View {
 			static let editUrge = "Edit Urge"
 			static let save = "Save"
 			static let cancel = "Cancel"
+			static let deleteUrge = "Delete Urge"
+			static let delete = "Delete"
+			static let deleteConfirmPrompt = "Are you sure you want to delete this urge?"
 		}
 
 		enum Image {
 			static let checkmark = "checkmark"
+			static let trash = "trash"
+			static let checkmarkFilled = "checkmark.circle.fill"
+			static let circle = "circle"
 		}
 	}
 }
