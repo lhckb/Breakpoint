@@ -19,11 +19,7 @@ struct CreateEditHabitView: View {
 	
 	init(habitToEdit: Habit? = nil) {
 		self.habitToEdit = habitToEdit
-		
-		viewModel = CreateEditHabitViewModel(
-			modelContext: modelContext,
-			habitToEdit: habitToEdit
-		)
+		self.viewModel = CreateEditHabitViewModel(habitToEdit: habitToEdit)
 	}
 
 	private var navigationTitle: String {
@@ -98,7 +94,7 @@ struct CreateEditHabitView: View {
 			.toolbar {
 				ToolbarItem(placement: .confirmationAction) {
 					Button {
-						viewModel.saveHabit()
+						viewModel.saveHabit(to: modelContext)
 						dismiss()
 					} label: {
 						Label(Constants.Text.confirm, systemImage: Constants.Image.checkmark)
@@ -130,7 +126,7 @@ struct CreateEditHabitView: View {
 				message: Text(Constants.Text.deleteConfirmPrompt),
 				primaryButton: .destructive(Text(Constants.Text.delete)
 			) {
-				viewModel.deleteHabit(habit: habitToEdit)
+				viewModel.deleteHabit(habitToEdit, from: modelContext)
 				dismiss()
 			}, secondaryButton: .cancel())
 		}

@@ -85,11 +85,11 @@ struct UrgesTimelineView: View {
 				}
 			}
 			.sheet(isPresented: $createUrgeSheetIsPresented) {
-				CreateEditUrgeView(createUrgeSheetIsPresented: $createUrgeSheetIsPresented)
+				CreateEditUrgeView()
 					.modelContext(modelContext)
 			}
 			.sheet(item: $editingUrge) { urge in
-				CreateEditUrgeView(createUrgeSheetIsPresented: .constant(true), urgeToEdit: urge)
+				CreateEditUrgeView(urgeToEdit: urge)
 					.modelContext(modelContext)
 					.onDisappear {
 						editingUrge = nil

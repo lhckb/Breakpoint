@@ -11,8 +11,6 @@ import SwiftData
 @Observable
 final class CreateEditHabitViewModel {
 	
-	private let modelContext: ModelContext
-	
 	var habitName: String = ""
 	var habitDescription: String = ""
 	var habitReplacementStrategyList: [String] = []
@@ -22,9 +20,7 @@ final class CreateEditHabitViewModel {
 	var error: Habit.ValidationError? = nil
 	var habitToEdit: Habit? = nil
 	
-	init(modelContext: ModelContext, habitToEdit: Habit? = nil) {
-		self.modelContext = modelContext
-		
+	init(habitToEdit: Habit? = nil) {
 		self.habitToEdit = habitToEdit
 
 		// Pre-fill with existing habit data if editing
@@ -60,7 +56,7 @@ final class CreateEditHabitViewModel {
 		isAddingNewStep = false
 	}
 
-	func saveHabit() {
+	func saveHabit(to modelContext: ModelContext) {
 		// Save any text currently being typed in the step field
 		if !newItemString.trimmingCharacters(in: .whitespaces).isEmpty {
 			saveNewStrategyStep()
@@ -96,7 +92,7 @@ final class CreateEditHabitViewModel {
 		}
 	}
 	
-	func deleteHabit(habit: Habit?) {
+	func deleteHabit(_ habit: Habit?, from modelContext: ModelContext) {
 		guard let habit = habit else { return }
 		
 		// Delete the habit from the context
