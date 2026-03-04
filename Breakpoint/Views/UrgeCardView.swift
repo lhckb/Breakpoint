@@ -10,6 +10,7 @@ import SwiftUI
 struct UrgeCardView: View {
 	let urge: Urge
 	let onEdit: () -> Void
+	@State private var isPressed = false
 	
 	private var formattedTime: String {
 		let formatter = DateFormatter()
@@ -35,79 +36,89 @@ struct UrgeCardView: View {
 	}
 	
 	var body: some View {
-		VStack(alignment: .leading, spacing: 12) {
-			// Header: Habit Name + Time + Edit Button
-			HStack {
-				Text(urge.habit.name)
-					.font(.title3)
-					.fontWeight(.semibold)
-				
-				Spacer()
-				
-				Button {
-					onEdit()
-				} label: {
-					Image(systemName: Constants.Image.pencil)
-						.font(.subheadline)
-						.foregroundStyle(.secondary)
-				}
-				.buttonStyle(.plain)
-				
-				Text(formattedTime)
-					.font(.subheadline)
-					.foregroundStyle(.secondary)
-			}
-			
-			// Context
-			if !urge.context.isEmpty {
-				VStack(alignment: .leading, spacing: 4) {
-					Text(Constants.Text.context)
-						.font(.caption)
+		Button {
+			onEdit()
+		} label: {
+			VStack(alignment: .leading, spacing: 12) {
+				// Header: Habit Name + Time
+				HStack {
+					Text(urge.habit.name)
+						.font(.title3)
 						.fontWeight(.semibold)
-						.foregroundStyle(.secondary)
-						.textCase(.uppercase)
 					
-					Text(urge.context)
-						.font(.subheadline)
-						.fixedSize(horizontal: false, vertical: true)
-				}
-			}
-			
-			// Resolution Comment
-			if !urge.resolutionComment.isEmpty {
-				VStack(alignment: .leading, spacing: 4) {
-					Text(Constants.Text.resolution)
-						.font(.caption)
-						.fontWeight(.semibold)
-						.foregroundStyle(.secondary)
-						.textCase(.uppercase)
+					Spacer()
 					
-					Text(urge.resolutionComment)
+					Text(formattedTime)
 						.font(.subheadline)
-						.fixedSize(horizontal: false, vertical: true)
+						.foregroundStyle(.secondary)
 				}
-			}
-			
-			// Resolution Status with Dot
-			HStack(spacing: 8) {
-				Circle()
-					.fill(resolutionColor)
-					.frame(width: 8, height: 8)
 				
-				Text(resolutionText)
-					.font(.subheadline)
-					.fontWeight(.medium)
-					.foregroundStyle(resolutionColor)
+				// Context
+				if !urge.context.isEmpty {
+					VStack(alignment: .leading, spacing: 4) {
+						Text(Constants.Text.context)
+							.font(.caption)
+							.fontWeight(.semibold)
+							.foregroundStyle(.secondary)
+							.textCase(.uppercase)
+						
+						Text(urge.context)
+							.font(.subheadline)
+							.fixedSize(horizontal: false, vertical: true)
+					}
+				}
+				
+				// Resolution Comment
+				if !urge.resolutionComment.isEmpty {
+					VStack(alignment: .leading, spacing: 4) {
+						Text(Constants.Text.resolution)
+							.font(.caption)
+							.fontWeight(.semibold)
+							.foregroundStyle(.secondary)
+							.textCase(.uppercase)
+						
+						Text(urge.resolutionComment)
+							.font(.subheadline)
+							.fixedSize(horizontal: false, vertical: true)
+					}
+				}
+				
+				// Resolution Status with Dot
+				HStack(spacing: 8) {
+					Circle()
+						.fill(resolutionColor)
+						.frame(width: 8, height: 8)
+					
+					Text(resolutionText)
+						.font(.subheadline)
+						.fontWeight(.medium)
+						.foregroundStyle(resolutionColor)
+				}
+				.padding(.top, 4)
 			}
-			.padding(.top, 4)
+			.padding()
+			.frame(maxWidth: .infinity, alignment: .leading)
+			.background {
+				RoundedRectangle(cornerRadius: 12)
+					.fill(Color(.systemBackground))
+					.shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+			}
 		}
-		.padding()
-		.frame(maxWidth: .infinity, alignment: .leading)
-		.background {
-			RoundedRectangle(cornerRadius: 12)
-				.fill(Color(.systemBackground))
-				.shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
-		}
+		.buttonStyle(.plain)
+		.scaleEffect(isPressed ? 0.97 : 1.0)
+		.opacity(isPressed ? 0.8 : 1.0)
+		.animation(.easeInOut(duration: 0.15), value: isPressed)
+		.simultaneousGesture(
+			DragGesture(minimumDistance: 0)
+				.onChanged { _ in
+					if !isPressed {
+						isPressed = true
+					}
+				}
+				.onEnded { _ in
+					isPressed = false
+				}
+		)
 	}
 	
 	private enum Constants {
@@ -118,17 +129,15 @@ struct UrgeCardView: View {
 			static let notHandled = "Not Handled"
 			static let pending = "Pending"
 		}
-		
-		enum Image {
-			static let pencil = "pencil"
-		}
 	}
 }
 
 #Preview {
+	let steps = try! ReplacementStep.createStepsFromStrings(["Step 1"])
 	let habit = try! Habit(
 		name: "Smoking",
-		habitDescription: "Smoking cigarettes"
+		habitDescription: "Smoking cigarettes",
+		replacementSteps: steps
 	)
 	
 	let urge = try! Urge(
