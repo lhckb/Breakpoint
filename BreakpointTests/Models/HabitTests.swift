@@ -169,14 +169,14 @@ struct HabitTests {
 	@Test("ReplacementStep with empty task throws error")
 	func emptyReplacementStepValidation() async throws {
 		#expect(throws: ReplacementStep.ValidationError.emptyTask) {
-			try ReplacementStep(task: "", order: 0)
+			try ReplacementStep(task: "")
 		}
 	}
 
 	@Test("ReplacementStep with whitespace-only task throws error")
 	func whitespaceOnlyReplacementStepValidation() async throws {
 		#expect(throws: ReplacementStep.ValidationError.emptyTask) {
-			try ReplacementStep(task: "   ", order: 0)
+			try ReplacementStep(task: "   ")
 		}
 	}
 
@@ -213,20 +213,6 @@ struct HabitTests {
 		#expect(error.errorDescription == "Replacement step task cannot be empty.")
 	}
 
-	// MARK: - ReplacementStep Order Tests
-
-	@Test("createStepsFromStrings assigns correct order values")
-	func stepsHaveCorrectOrder() async throws {
-		let steps = try ReplacementStep.createStepsFromStrings(["First", "Second", "Third"])
-		let sorted = steps.sorted(by: { $0.order < $1.order })
-		#expect(sorted[0].task == "First")
-		#expect(sorted[0].order == 0)
-		#expect(sorted[1].task == "Second")
-		#expect(sorted[1].order == 1)
-		#expect(sorted[2].task == "Third")
-		#expect(sorted[2].order == 2)
-	}
-
 	// MARK: - Edge Case Tests
 
 	@Test("Habit with very long name is valid")
@@ -253,7 +239,7 @@ struct HabitTests {
 		)
 
 		#expect(habit.name.contains("🚬"))
-		#expect(habit.replacementSteps.sorted(by: { $0.order < $1.order })[0].task.contains("🚶"))
+		#expect(habit.replacementSteps.filter { $0.task.contains("🚶") }.count == 1)
 	}
 
 	@Test("Habit with unicode characters is valid")

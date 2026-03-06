@@ -17,10 +17,9 @@ struct ReplacementStepTests {
 
 	@Test("Valid replacement step with all required fields")
 	func validReplacementStepCreation() async throws {
-		let step = try ReplacementStep(task: "Chew gum", order: 0)
+		let step = try ReplacementStep(task: "Chew gum")
 
 		#expect(step.task == "Chew gum")
-		#expect(step.order == 0)
 		#expect(step.habit == nil)
 		#expect(step.id != UUID(uuidString: "00000000-0000-0000-0000-000000000000"))
 	}
@@ -34,37 +33,18 @@ struct ReplacementStepTests {
 			replacementSteps: steps
 		)
 
-		let step = try ReplacementStep(task: "Walk for 10 minutes", order: 1, habit: habit)
+		let step = try ReplacementStep(task: "Walk for 10 minutes", habit: habit)
 
 		#expect(step.task == "Walk for 10 minutes")
-		#expect(step.order == 1)
 		#expect(step.habit === habit)
 	}
 
 	@Test("Valid replacement step with whitespace-padded task")
 	func validReplacementStepWithWhitespacePadding() async throws {
-		let step = try ReplacementStep(task: "  Drink water  ", order: 0)
+		let step = try ReplacementStep(task: "  Drink water  ")
 
 		// Should still create successfully as trimmed value is non-empty
 		#expect(step.task == "  Drink water  ")
-	}
-
-	@Test("Valid replacement step with different order values")
-	func validReplacementStepWithDifferentOrders() async throws {
-		let step1 = try ReplacementStep(task: "First", order: 0)
-		let step2 = try ReplacementStep(task: "Second", order: 5)
-		let step3 = try ReplacementStep(task: "Third", order: 100)
-
-		#expect(step1.order == 0)
-		#expect(step2.order == 5)
-		#expect(step3.order == 100)
-	}
-
-	@Test("Valid replacement step with negative order value")
-	func validReplacementStepWithNegativeOrder() async throws {
-		let step = try ReplacementStep(task: "Task", order: -1)
-
-		#expect(step.order == -1)
 	}
 
 	// MARK: - Empty Task Validation Tests
@@ -72,35 +52,35 @@ struct ReplacementStepTests {
 	@Test("ReplacementStep with empty task throws error")
 	func emptyTaskValidation() async throws {
 		#expect(throws: ReplacementStep.ValidationError.emptyTask) {
-			try ReplacementStep(task: "", order: 0)
+			try ReplacementStep(task: "")
 		}
 	}
 
 	@Test("ReplacementStep with whitespace-only task throws error")
 	func whitespaceOnlyTaskValidation() async throws {
 		#expect(throws: ReplacementStep.ValidationError.emptyTask) {
-			try ReplacementStep(task: "   ", order: 0)
+			try ReplacementStep(task: "   ")
 		}
 	}
 
 	@Test("ReplacementStep with tabs-only task throws error")
 	func tabsOnlyTaskValidation() async throws {
 		#expect(throws: ReplacementStep.ValidationError.emptyTask) {
-			try ReplacementStep(task: "\t\t\t", order: 0)
+			try ReplacementStep(task: "\t\t\t")
 		}
 	}
 
 	@Test("ReplacementStep with newlines-only task throws error")
 	func newlinesOnlyTaskValidation() async throws {
 		#expect(throws: ReplacementStep.ValidationError.emptyTask) {
-			try ReplacementStep(task: "\n\n", order: 0)
+			try ReplacementStep(task: "\n\n")
 		}
 	}
 
 	@Test("ReplacementStep with mixed whitespace task throws error")
 	func mixedWhitespaceTaskValidation() async throws {
 		#expect(throws: ReplacementStep.ValidationError.emptyTask) {
-			try ReplacementStep(task: " \t \n ", order: 0)
+			try ReplacementStep(task: " \t \n ")
 		}
 	}
 
@@ -116,9 +96,9 @@ struct ReplacementStepTests {
 
 	@Test("Each replacement step has unique UUID")
 	func uniqueUUIDGeneration() async throws {
-		let step1 = try ReplacementStep(task: "Task 1", order: 0)
-		let step2 = try ReplacementStep(task: "Task 2", order: 1)
-		let step3 = try ReplacementStep(task: "Task 3", order: 2)
+		let step1 = try ReplacementStep(task: "Task 1")
+		let step2 = try ReplacementStep(task: "Task 2")
+		let step3 = try ReplacementStep(task: "Task 3")
 
 		#expect(step1.id != step2.id)
 		#expect(step2.id != step3.id)
@@ -133,7 +113,6 @@ struct ReplacementStepTests {
 
 		#expect(steps.count == 1)
 		#expect(steps[0].task == "First step")
-		#expect(steps[0].order == 0)
 	}
 
 	@Test("createStepsFromStrings creates multiple steps")
@@ -148,22 +127,6 @@ struct ReplacementStepTests {
 		#expect(steps[0].task == "First step")
 		#expect(steps[1].task == "Second step")
 		#expect(steps[2].task == "Third step")
-	}
-
-	@Test("createStepsFromStrings assigns correct order values")
-	func createStepsAssignsCorrectOrder() async throws {
-		let steps = try ReplacementStep.createStepsFromStrings([
-			"First",
-			"Second",
-			"Third",
-			"Fourth",
-			"Fifth"
-		])
-
-		#expect(steps.count == 5)
-		for (index, step) in steps.enumerated() {
-			#expect(step.order == index)
-		}
 	}
 
 	@Test("createStepsFromStrings with empty array returns empty array")
@@ -216,7 +179,7 @@ struct ReplacementStepTests {
 	@Test("ReplacementStep with very long task is valid")
 	func veryLongTaskValidation() async throws {
 		let longTask = String(repeating: "A", count: 10000)
-		let step = try ReplacementStep(task: longTask, order: 0)
+		let step = try ReplacementStep(task: longTask)
 
 		#expect(step.task.count == 10000)
 	}
@@ -224,8 +187,7 @@ struct ReplacementStepTests {
 	@Test("ReplacementStep with special characters is valid")
 	func specialCharactersInTaskValidation() async throws {
 		let step = try ReplacementStep(
-			task: "🚶‍♂️ Walk for 10 minutes! 💪",
-			order: 0
+			task: "🚶‍♂️ Walk for 10 minutes! 💪"
 		)
 
 		#expect(step.task.contains("🚶‍♂️"))
@@ -234,9 +196,9 @@ struct ReplacementStepTests {
 
 	@Test("ReplacementStep with unicode characters is valid")
 	func unicodeCharactersValidation() async throws {
-		let step1 = try ReplacementStep(task: "喝水", order: 0)
-		let step2 = try ReplacementStep(task: "Пить воду", order: 1)
-		let step3 = try ReplacementStep(task: "Boire de l'eau", order: 2)
+		let step1 = try ReplacementStep(task: "喝水")
+		let step2 = try ReplacementStep(task: "Пить воду")
+		let step3 = try ReplacementStep(task: "Boire de l'eau")
 
 		#expect(step1.task == "喝水")
 		#expect(step2.task == "Пить воду")
@@ -246,8 +208,7 @@ struct ReplacementStepTests {
 	@Test("ReplacementStep with newlines in task is valid")
 	func newlinesInTaskValidation() async throws {
 		let step = try ReplacementStep(
-			task: "Step 1:\nWalk outside\nBreathe deeply",
-			order: 0
+			task: "Step 1:\nWalk outside\nBreathe deeply"
 		)
 
 		#expect(step.task.contains("\n"))
@@ -257,25 +218,10 @@ struct ReplacementStepTests {
 	@Test("ReplacementStep with tabs in task is valid")
 	func tabsInTaskValidation() async throws {
 		let step = try ReplacementStep(
-			task: "Step:\tDrink water\tRelax",
-			order: 0
+			task: "Step:\tDrink water\tRelax"
 		)
 
 		#expect(step.task.contains("\t"))
-	}
-
-	@Test("ReplacementStep with very large order value")
-	func veryLargeOrderValue() async throws {
-		let step = try ReplacementStep(task: "Task", order: Int.max)
-
-		#expect(step.order == Int.max)
-	}
-
-	@Test("ReplacementStep with very small order value")
-	func verySmallOrderValue() async throws {
-		let step = try ReplacementStep(task: "Task", order: Int.min)
-
-		#expect(step.order == Int.min)
 	}
 
 	@Test("createStepsFromStrings with single character tasks")
@@ -290,10 +236,9 @@ struct ReplacementStepTests {
 
 	@Test("ReplacementStep with minimum valid data")
 	func minimumValidReplacementStep() async throws {
-		let step = try ReplacementStep(task: "X", order: 0)
+		let step = try ReplacementStep(task: "X")
 
 		#expect(step.task == "X")
-		#expect(step.order == 0)
 		#expect(step.habit == nil)
 	}
 }
