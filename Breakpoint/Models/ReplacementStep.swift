@@ -12,19 +12,20 @@ import SwiftData
 class ReplacementStep {
 	@Attribute(.unique) var id: UUID
 	var task: String
-	var order: Int // For maintaining display order
+	
+	var createdAt: Date
 	
 	// Relationship to parent Habit
 	var habit: Habit?
 	
-	init(task: String, order: Int, habit: Habit? = nil) throws {
+	init(task: String, habit: Habit? = nil) throws {
 		guard !task.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
 			throw ValidationError.emptyTask
 		}
 		
 		self.id = UUID()
+		self.createdAt = Date()
 		self.task = task
-		self.order = order
 		self.habit = habit
 	}
 }
@@ -47,8 +48,8 @@ extension ReplacementStep {
 extension ReplacementStep {
 	// Convenience method for creating steps from strings (for migration/testing)
 	static func createStepsFromStrings(_ tasks: [String]) throws -> [ReplacementStep] {
-		return try tasks.enumerated().map { index, task in
-			try ReplacementStep(task: task, order: index)
+		return try tasks.enumerated().map { _, task in
+			try ReplacementStep(task: task)
 		}
 	}
 }

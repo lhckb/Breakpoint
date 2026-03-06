@@ -12,23 +12,24 @@ struct CreateEditUrgeView: View {
 	@Environment(\.modelContext) private var modelContext
 	@Environment(\.dismiss) private var dismiss
 
-	@Query private var habits: [Habit]
-
-	let urgeToEdit: Urge?
-
-//	@State private var selection: Habit?
-//	@State private var time: Date = Date()
-//	@State private var context: String = ""
-//	@State private var resolution: Urge.Resolution = .pending
-//	@State private var resolutionComment: String = ""
-//	@State private var completedStepIDs: Set<UUID> = []
-//	@State private var showDeleteConfirmAlert: Bool = false
+	@Query(sort: \Habit.createdAt, order: .reverse) private var habits: [Habit]
 
 	@State private var viewModel: CreateEditUrgeViewModel
-
+	
+	init(urgeToEdit: Urge? = nil) {
+		self.viewModel = CreateEditUrgeViewModel(urgeToEdit: urgeToEdit)
+	}
+	
+	private var isEditing: Bool {
+		viewModel.urgeToEdit != nil
+	}
+	
+	private var shouldDisableConfirmButton: Bool {
+		viewModel.selection == nil || viewModel.context.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+	}
 
 	private var navigationTitle: String {
-		viewModel.isEditing ? Constants.Text.editUrge : Constants.Text.addUrge
+		isEditing ? Constants.Text.editUrge : Constants.Text.addUrge
 	}
 
 	private var pickerText: String {
@@ -37,11 +38,6 @@ struct CreateEditUrgeView: View {
 		}
 
 		return Constants.Text.selectAHabit
-	}
-
-	init(urgeToEdit: Urge? = nil) {
-		self.urgeToEdit = urgeToEdit
-		self.viewModel = CreateEditUrgeViewModel(urgeToEdit: urgeToEdit)
 	}
 
     var body: some View {
@@ -54,7 +50,7 @@ struct CreateEditUrgeView: View {
 								.tag(habit as Habit?) // The .tag() modifier tells SwiftUI: "When the user selects this visual option, set the binding to this specific value." Tag value is what goes in selection
 						}
 					}
-					.disabled(viewModel.isEditing)
+					.disabled(isEditing)
 					.onChange(of: viewModel.selection) { oldValue, newValue in
 						// Reset completed steps when switching to a different habit
 						if oldValue?.id != newValue?.id {
@@ -73,7 +69,7 @@ struct CreateEditUrgeView: View {
 								.font(.subheadline)
 								.fontWeight(.semibold)
 
-							ForEach(selectedHabit.replacementSteps.sorted(by: { $0.order < $1.order })) { step in
+							ForEach(selectedHabit.replacementSteps.sorted(by: { $0.createdAt < $1.createdAt })) { step in
 								Button {
 									viewModel.toggleStepCompletion(step.id)
 								} label: {
@@ -112,7 +108,7 @@ struct CreateEditUrgeView: View {
 						.lineLimit(3...6)
 				}
 
-				if urgeToEdit != nil {
+				if viewModel.urgeToEdit != nil {
 					Section {
 						Button(role: .destructive) {
 							viewModel.showDeleteConfirmAlert = true
@@ -134,7 +130,7 @@ struct CreateEditUrgeView: View {
 					} label: {
 						Label(Constants.Text.save, systemImage: Constants.Image.checkmark)
 					}
-					.disabled(viewModel.shouldDisableConfirmButton)
+					.disabled(shouldDisableConfirmButton)
 				}
 
 				ToolbarItem(placement: .cancellationAction) {
@@ -144,16 +140,24 @@ struct CreateEditUrgeView: View {
 				}
 			}
 			.onAppear {
-				if urgeToEdit == nil && !habits.isEmpty {
+				if viewModel.urgeToEdit == nil && !habits.isEmpty {
 					viewModel.selection = habits.first
 				}
+			}
+			// if all goes as planned this alert will never show
+			.alert(isPresented: $viewModel.showErrorAlert) {
+				Alert(
+					title: Text(viewModel.errorDescription),
+					message: Text(viewModel.errorDescription),
+					dismissButton: .default(Text(Constants.Text.okUppercase))
+				)
 			}
 			.alert(isPresented: $viewModel.showDeleteConfirmAlert) {
 				Alert(
 					title: Text(Constants.Text.deleteUrge),
 					message: Text(Constants.Text.deleteConfirmPrompt),
 					primaryButton: .destructive(Text(Constants.Text.delete)) {
-						viewModel.deleteUrge(urgeToEdit, from: modelContext)
+						viewModel.deleteUrge(from: modelContext)
 						dismiss()
 					}, secondaryButton: .cancel())
 			}
@@ -181,6 +185,7 @@ struct CreateEditUrgeView: View {
 			static let deleteUrge = "Delete Urge"
 			static let delete = "Delete"
 			static let deleteConfirmPrompt = "Are you sure you want to delete this urge?"
+			static let okUppercase = "OK"
 		}
 
 		enum Image {

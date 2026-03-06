@@ -13,6 +13,7 @@ class Habit {
 	@Attribute(.unique) var id: UUID
 	var name: String
 	var habitDescription: String
+	var createdAt: Date
 	
 	@Relationship(deleteRule: .cascade, inverse: \ReplacementStep.habit)
 	var replacementSteps: [ReplacementStep] = []
@@ -43,6 +44,7 @@ class Habit {
 		}
 
 		self.id = UUID()
+		self.createdAt = Date()
 		self.name = name
 		self.habitDescription = habitDescription
 		self.replacementSteps = replacementSteps

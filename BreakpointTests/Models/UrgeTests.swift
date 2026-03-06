@@ -11,13 +11,13 @@ import Foundation
 
 
 @Suite("Urge Validation Tests")
-struct UrgeValidationTests {
+struct UrgeTests {
 
 	// MARK: - Test Fixtures
 
 	/// Creates a valid test habit for use in urge tests
 	func createTestHabit() throws -> Habit {
-		let steps = try Habit.createStepsFromStrings(["Strategy 1", "Strategy 2"])
+		let steps = try ReplacementStep.createStepsFromStrings(["Strategy 1", "Strategy 2"])
 		return try Habit(
 			name: "Test Habit",
 			habitDescription: "A test habit for urge testing",
@@ -306,7 +306,7 @@ struct UrgeValidationTests {
 
 	@Test("Urge with all steps completed stores all IDs")
 	func allStepsCompletedStoredCorrectly() async throws {
-		let steps = try Habit.createStepsFromStrings(["Step A", "Step B", "Step C"])
+		let steps = try ReplacementStep.createStepsFromStrings(["Step A", "Step B", "Step C"])
 		let habit = try Habit(
 			name: "Test Habit",
 			habitDescription: "A test habit",

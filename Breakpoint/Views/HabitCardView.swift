@@ -39,7 +39,7 @@ struct HabitCardView: View {
 							.foregroundStyle(.secondary)
 							.textCase(.uppercase)
 
-						ForEach(habit.replacementSteps.sorted(by: { $0.order < $1.order })) { step in
+						ForEach(habit.replacementSteps.sorted(by: { $0.createdAt < $1.createdAt })) { step in
 							HStack(alignment: .top, spacing: 6) {
 								Text("•")
 									.fontWeight(.bold)

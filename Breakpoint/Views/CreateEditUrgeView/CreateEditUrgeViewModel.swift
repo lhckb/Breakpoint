@@ -20,6 +20,8 @@ final class CreateEditUrgeViewModel {
 	var resolutionComment: String = ""
 	var completedStepIDs: Set<UUID> = []
 	var showDeleteConfirmAlert: Bool = false
+	var showErrorAlert: Bool = false
+	var errorDescription: String = ""
 	
 	init(urgeToEdit: Urge?) {
 		self.urgeToEdit = urgeToEdit
@@ -33,14 +35,6 @@ final class CreateEditUrgeViewModel {
 			self.resolutionComment = urge.resolutionComment
 			self.completedStepIDs = Set(urge.completedReplacementStepIDs)
 		}
-	}
-	
-	var isEditing: Bool {
-		urgeToEdit != nil
-	}
-	
-	var shouldDisableConfirmButton: Bool {
-		selection == nil || context.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
 	}
 	
 	func toggleStepCompletion(_ stepID: UUID) {
@@ -77,15 +71,19 @@ final class CreateEditUrgeViewModel {
 
 				modelContext.insert(newUrge)
 			} catch let validationError as Urge.ValidationError {
-				_ = validationError
+				errorDescription = validationError.localizedDescription
+				showErrorAlert = true
 			} catch {
 				// This shouldn't happen
+				errorDescription = "Unknown Error: \(error.localizedDescription)"
+				showErrorAlert = true
 			}
 		}
 	}
 
-	func deleteUrge(_ urge: Urge?, from modelContext: ModelContext) {
-		modelContext.delete(urge!)
+	func deleteUrge(from modelContext: ModelContext) {
+		guard let urge = self.urgeToEdit else { return }
+		modelContext.delete(urge)
 		try! modelContext.save()
 	}
 }

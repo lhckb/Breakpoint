@@ -17,8 +17,9 @@ final class CreateEditHabitViewModel {
 	var newItemString: String = ""
 	var isAddingNewStep: Bool = false
 	var showErrorAlert: Bool = false
-	var error: Habit.ValidationError? = nil
 	var habitToEdit: Habit? = nil
+	var showDeleteConfirmAlert: Bool = false
+	var errorDescription: String = ""
 	
 	init(habitToEdit: Habit? = nil) {
 		self.habitToEdit = habitToEdit
@@ -27,18 +28,8 @@ final class CreateEditHabitViewModel {
 		if let habit = habitToEdit {
 			habitName = habit.name
 			habitDescription = habit.habitDescription
-			habitReplacementStrategyList = habit.replacementSteps.sorted(by: { $0.order < $1.order }).map(\.task)
+			habitReplacementStrategyList = habit.replacementSteps.sorted(by: { $0.createdAt < $1.createdAt }).map(\.task)
 		}
-	}
-	
-	var isEditing: Bool {
-		habitToEdit != nil
-	}
-	
-	var anyFieldEmpty: Bool {
-		habitName.isEmpty
-		|| habitDescription.isEmpty
-		|| (habitReplacementStrategyList.isEmpty && newItemString.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
 	}
 	
 	func saveNewStrategyStep() {
@@ -83,22 +74,23 @@ final class CreateEditHabitViewModel {
 
 				modelContext.insert(newHabit)
 			} catch let validationError as Habit.ValidationError {
-				error = validationError
+				errorDescription = validationError.localizedDescription
 				showErrorAlert = true
-			} catch {
+			} catch let error {
 				// This shouldn't happen, but handle unexpected errors
-				fatalError("Unexpected error: \(error)")
+				errorDescription = "Unknown Error: \(error.localizedDescription)"
+				showErrorAlert = true
 			}
 		}
 	}
 	
-	func deleteHabit(_ habit: Habit?, from modelContext: ModelContext) {
-		guard let habit = habit else { return }
+	func deleteHabit(from modelContext: ModelContext) {
+		guard let habit = self.habitToEdit else { return }
 		
 		// Delete the habit from the context
 		modelContext.delete(habit)
 		
 		// Save after dismissing to avoid accessing invalidated object
-		try? modelContext.save()
+		try! modelContext.save()
 	}
 }

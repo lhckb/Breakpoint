@@ -11,19 +11,30 @@ import SwiftData
 struct CreateEditHabitView: View {
 	@Environment(\.modelContext) private var modelContext
 	@Environment(\.dismiss) private var dismiss
-
-	let habitToEdit: Habit?
 	
 	@State private var viewModel: CreateEditHabitViewModel
-	@State private var showDeleteConfirmAlert: Bool = false
 	
 	init(habitToEdit: Habit? = nil) {
-		self.habitToEdit = habitToEdit
 		self.viewModel = CreateEditHabitViewModel(habitToEdit: habitToEdit)
 	}
 
 	private var navigationTitle: String {
-		viewModel.isEditing ? Constants.Text.editHabit : Constants.Text.addHabit
+		isEditing ? Constants.Text.editHabit : Constants.Text.addHabit
+	}
+	
+	private var isEditing: Bool {
+		viewModel.habitToEdit != nil
+	}
+	
+	private var anyFieldEmpty: Bool {
+		let habitName = viewModel.habitName
+		let habitDescription = viewModel.habitDescription
+		let habitReplacementStrategyList = viewModel.habitReplacementStrategyList
+		let newItemString = viewModel.newItemString
+		
+		return habitName.isEmpty
+		|| habitDescription.isEmpty
+		|| (habitReplacementStrategyList.isEmpty && newItemString.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
 	}
 
     var body: some View {
@@ -78,9 +89,9 @@ struct CreateEditHabitView: View {
 					}
 				}
 				
-				if habitToEdit != nil {
+				if viewModel.habitToEdit != nil {
 					Button(role: .destructive) {
-						showDeleteConfirmAlert = true
+						viewModel.showDeleteConfirmAlert = true
 					} label: {
 						HStack {
 							Image(systemName: Constants.Image.trash)
@@ -99,7 +110,7 @@ struct CreateEditHabitView: View {
 					} label: {
 						Label(Constants.Text.confirm, systemImage: Constants.Image.checkmark)
 					}
-					.disabled(viewModel.anyFieldEmpty)
+					.disabled(anyFieldEmpty)
 				}
 
 				ToolbarItem(placement: .cancellationAction) {
@@ -113,20 +124,20 @@ struct CreateEditHabitView: View {
 			viewModel.habitReplacementStrategyList.removeAll(where: { $0.isEmpty })
 		}
 		// if all goes as planned this alert will never show
-		.alert(isPresented: $viewModel.showErrorAlert, error: viewModel.error) {
-			Button {
-
-			} label: {
-				Text(Constants.Text.okUppercase)
-			}
+		.alert(isPresented: $viewModel.showErrorAlert) {
+			Alert(
+				title: Text(viewModel.errorDescription),
+				message: Text(viewModel.errorDescription),
+				dismissButton: .default(Text(Constants.Text.okUppercase))
+			)
 		}
-		.alert(isPresented: $showDeleteConfirmAlert) {
+		.alert(isPresented: $viewModel.showDeleteConfirmAlert) {
 			Alert(
 				title: Text(Constants.Text.deleteHabit),
 				message: Text(Constants.Text.deleteConfirmPrompt),
 				primaryButton: .destructive(Text(Constants.Text.delete)
 			) {
-				viewModel.deleteHabit(habitToEdit, from: modelContext)
+				viewModel.deleteHabit(from: modelContext)
 				dismiss()
 			}, secondaryButton: .cancel())
 		}

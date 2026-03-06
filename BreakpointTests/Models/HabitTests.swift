@@ -11,13 +11,13 @@ import Foundation
 
 
 @Suite("Habit Validation Tests")
-struct HabitValidationTests {
+struct HabitTests {
 
 	// MARK: - Valid Habit Creation Tests
 
 	@Test("Valid habit with all required fields")
 	func validHabitCreation() async throws {
-		let steps = try Habit.createStepsFromStrings(["Chew gum", "Go for a walk"])
+		let steps = try ReplacementStep.createStepsFromStrings(["Chew gum", "Go for a walk"])
 		let habit = try Habit(
 			name: "Stop Smoking",
 			habitDescription: "Quit smoking to improve health",
@@ -31,7 +31,7 @@ struct HabitValidationTests {
 
 	@Test("Valid habit with single replacement strategy")
 	func validHabitWithSingleStrategy() async throws {
-		let steps = try Habit.createStepsFromStrings(["Drink tea instead"])
+		let steps = try ReplacementStep.createStepsFromStrings(["Drink tea instead"])
 		let habit = try Habit(
 			name: "Reduce Coffee",
 			habitDescription: "Drink less coffee",
@@ -44,7 +44,7 @@ struct HabitValidationTests {
 
 	@Test("Valid habit with multiple replacement strategies")
 	func validHabitWithMultipleStrategies() async throws {
-		let steps = try Habit.createStepsFromStrings([
+		let steps = try ReplacementStep.createStepsFromStrings([
 			"Deep breathing",
 			"Take a walk",
 			"Call a friend",
@@ -63,7 +63,7 @@ struct HabitValidationTests {
 
 	@Test("Valid habit with whitespace-padded fields")
 	func validHabitWithWhitespacePadding() async throws {
-		let steps = try Habit.createStepsFromStrings(["  Use Pomodoro technique  "])
+		let steps = try ReplacementStep.createStepsFromStrings(["  Use Pomodoro technique  "])
 		let habit = try Habit(
 			name: "  Stop Procrastinating  ",
 			habitDescription: "  Get work done on time  ",
@@ -79,7 +79,7 @@ struct HabitValidationTests {
 
 	@Test("Habit with empty name throws error")
 	func emptyNameValidation() async throws {
-		let steps = try Habit.createStepsFromStrings(["Valid strategy"])
+		let steps = try ReplacementStep.createStepsFromStrings(["Valid strategy"])
 		#expect(throws: Habit.ValidationError.emptyName) {
 			try Habit(
 				name: "",
@@ -91,7 +91,7 @@ struct HabitValidationTests {
 
 	@Test("Habit with whitespace-only name throws error")
 	func whitespaceOnlyNameValidation() async throws {
-		let steps = try Habit.createStepsFromStrings(["Valid strategy"])
+		let steps = try ReplacementStep.createStepsFromStrings(["Valid strategy"])
 		#expect(throws: Habit.ValidationError.emptyName) {
 			try Habit(
 				name: "   ",
@@ -103,7 +103,7 @@ struct HabitValidationTests {
 
 	@Test("Habit with tabs-only name throws error")
 	func tabsOnlyNameValidation() async throws {
-		let steps = try Habit.createStepsFromStrings(["Valid strategy"])
+		let steps = try ReplacementStep.createStepsFromStrings(["Valid strategy"])
 		#expect(throws: Habit.ValidationError.emptyName) {
 			try Habit(
 				name: "\t\t\t",
@@ -115,7 +115,7 @@ struct HabitValidationTests {
 
 	@Test("Habit with newlines-only name throws error")
 	func newlinesOnlyNameValidation() async throws {
-		let steps = try Habit.createStepsFromStrings(["Valid strategy"])
+		let steps = try ReplacementStep.createStepsFromStrings(["Valid strategy"])
 		#expect(throws: Habit.ValidationError.emptyName) {
 			try Habit(
 				name: "\n\n",
@@ -129,7 +129,7 @@ struct HabitValidationTests {
 
 	@Test("Habit with empty description throws error")
 	func emptyDescriptionValidation() async throws {
-		let steps = try Habit.createStepsFromStrings(["Valid strategy"])
+		let steps = try ReplacementStep.createStepsFromStrings(["Valid strategy"])
 		#expect(throws: Habit.ValidationError.emptyDescription) {
 			try Habit(
 				name: "Valid name",
@@ -141,7 +141,7 @@ struct HabitValidationTests {
 
 	@Test("Habit with whitespace-only description throws error")
 	func whitespaceOnlyDescriptionValidation() async throws {
-		let steps = try Habit.createStepsFromStrings(["Valid strategy"])
+		let steps = try ReplacementStep.createStepsFromStrings(["Valid strategy"])
 		#expect(throws: Habit.ValidationError.emptyDescription) {
 			try Habit(
 				name: "Valid name",
@@ -183,7 +183,7 @@ struct HabitValidationTests {
 	@Test("createStepsFromStrings skips empty strings via validation error")
 	func createStepsFromStringsWithEmptyThrows() async throws {
 		#expect(throws: ReplacementStep.ValidationError.emptyTask) {
-			try Habit.createStepsFromStrings(["Valid strategy", "", "Another strategy"])
+			try ReplacementStep.createStepsFromStrings(["Valid strategy", "", "Another strategy"])
 		}
 	}
 
@@ -217,7 +217,7 @@ struct HabitValidationTests {
 
 	@Test("createStepsFromStrings assigns correct order values")
 	func stepsHaveCorrectOrder() async throws {
-		let steps = try Habit.createStepsFromStrings(["First", "Second", "Third"])
+		let steps = try ReplacementStep.createStepsFromStrings(["First", "Second", "Third"])
 		let sorted = steps.sorted(by: { $0.order < $1.order })
 		#expect(sorted[0].task == "First")
 		#expect(sorted[0].order == 0)
@@ -232,7 +232,7 @@ struct HabitValidationTests {
 	@Test("Habit with very long name is valid")
 	func veryLongNameValidation() async throws {
 		let longName = String(repeating: "A", count: 1000)
-		let steps = try Habit.createStepsFromStrings(["Strategy"])
+		let steps = try ReplacementStep.createStepsFromStrings(["Strategy"])
 
 		let habit = try Habit(
 			name: longName,
@@ -245,7 +245,7 @@ struct HabitValidationTests {
 
 	@Test("Habit with special characters in name is valid")
 	func specialCharactersInNameValidation() async throws {
-		let steps = try Habit.createStepsFromStrings(["🚶 Walk", "💧 Drink water"])
+		let steps = try ReplacementStep.createStepsFromStrings(["🚶 Walk", "💧 Drink water"])
 		let habit = try Habit(
 			name: "Stop 🚬 Smoking!",
 			habitDescription: "Quit smoking 💪",
@@ -258,7 +258,7 @@ struct HabitValidationTests {
 
 	@Test("Habit with unicode characters is valid")
 	func unicodeCharactersValidation() async throws {
-		let steps = try Habit.createStepsFromStrings(["喝水", "Пить воду"])
+		let steps = try ReplacementStep.createStepsFromStrings(["喝水", "Пить воду"])
 		let habit = try Habit(
 			name: "Arrêter de fumer",
 			habitDescription: "Aufhören zu rauchen",

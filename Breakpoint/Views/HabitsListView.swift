@@ -10,7 +10,7 @@ import SwiftData
 
 struct HabitsListView: View {
 	@Environment(\.modelContext) private var modelContext
-	@Query private var habits: [Habit]
+	@Query(sort: \Habit.createdAt, order: .reverse) private var habits: [Habit]
 	
 	@State private var createHabitSheetPresented: Bool = false
 	@State private var editingHabit: Habit?
